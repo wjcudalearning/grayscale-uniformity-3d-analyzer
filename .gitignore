@@ -1,0 +1,24 @@
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# 產出物 / 暫存
+*.log
+test_sample.png
+*_report.html
+*_report.csv
+report_preview.html
+gui_shot*.png
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
