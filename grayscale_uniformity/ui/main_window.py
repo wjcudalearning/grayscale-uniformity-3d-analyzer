@@ -17,6 +17,7 @@ from ..analysis import UniformityResult
 from ..charts import create_plotly_html
 from ..report import create_report_html
 from ..grading import parse_thresholds, DEFAULT_THRESHOLDS
+from ..config import get_gpu_enabled, set_gpu_enabled
 from .worker import AnalysisWorker
 from .widgets import MetricCard, field_label_qss, APP_QSS
 
@@ -169,6 +170,8 @@ class MainWindow(QMainWindow):
         self.combo_quality.addItem("平衡 (約 4 萬點)", 40000)
         self.combo_quality.addItem("效能優先 (約 2 萬點)", 20000)
         self.combo_quality.addItem("品質優先 (約 8 萬點)", 80000)
+        self.combo_quality.addItem("GPU 高密度 (約 30 萬點)", 300000)
+        self.combo_quality.addItem("GPU 極限 (約 100 萬點)", 1000000)
         self.combo_quality.currentIndexChanged.connect(self._schedule_analysis)
         param_layout.addWidget(self.combo_quality)
 
@@ -180,6 +183,19 @@ class MainWindow(QMainWindow):
         self.combo_theme.addItem("深色 (Dark)", "dark")
         self.combo_theme.currentIndexChanged.connect(self._schedule_analysis)
         param_layout.addWidget(self.combo_theme)
+
+        # 硬體 GPU 加速 (QtWebEngine)；Chromium 旗標須於啟動時設定，故重啟生效
+        lbl_gpu = QLabel("硬體 GPU 加速 (重啟生效):")
+        lbl_gpu.setStyleSheet(field_label_qss())
+        param_layout.addWidget(lbl_gpu)
+        self.combo_gpu = QComboBox()
+        self.combo_gpu.addItem("開啟 (硬體加速)", True)
+        self.combo_gpu.addItem("關閉 (軟體渲染)", False)
+        self.combo_gpu.setCurrentIndex(0 if get_gpu_enabled() else 1)
+        self.combo_gpu.setToolTip("控制 QtWebEngine 是否走硬體 GPU 渲染；\n"
+                                  "3D/WebGL 圖表會用 GPU。變更後需重新啟動程式才生效。")
+        self.combo_gpu.currentIndexChanged.connect(self._on_gpu_setting_changed)
+        param_layout.addWidget(self.combo_gpu)
 
         # 報表警戒線門檻 (%)，逗號分隔；供完整 HTML 報表分級使用
         lbl_thr = QLabel("報表警戒線門檻 (%，逗號分隔):")
@@ -317,6 +333,15 @@ class MainWindow(QMainWindow):
         scaled = QPixmap.fromImage(q_img).scaled(
             self.lbl_thumbnail.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
         self.lbl_thumbnail.setPixmap(scaled)
+
+    def _on_gpu_setting_changed(self):
+        enabled = bool(self.combo_gpu.currentData())
+        set_gpu_enabled(enabled)
+        mode = "硬體 GPU 加速" if enabled else "軟體渲染"
+        QMessageBox.information(
+            self, "顯示設定已更新",
+            f"已切換為「{mode}」。\n此設定為 QtWebEngine (Chromium) 啟動旗標，"
+            f"需「重新啟動程式」後才會生效。")
 
     # ------------------ 分析流程 ------------------
     def _schedule_analysis(self):

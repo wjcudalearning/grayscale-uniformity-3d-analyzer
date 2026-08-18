@@ -13,6 +13,7 @@
 - **警戒線分級**：以「偏離平均 ±X%」為不均勻度定義，內建 **3% / 5% / 10% / 20%** 警戒線（可於 GUI 自訂門檻），依第 99 百分位偏差自動評級（優 / 良 / 尚可 / 偏差 / 不合格），並計算各警戒線通過率。
 - **完整 HTML 分析報表**：一鍵匯出卡片式報表，含等級摘要、空間熱力圖、均勻度分區圖、直方圖（附警戒線）、中央剖面線、徑向亮度衰減（暗角判讀）與 3D 曲面總覽；內嵌 plotly.js，單檔離線可看。
 - **效能優化**：區塊降採樣（Pooling）、背景執行緒計算、參數防抖、散點密度品質分級、共用 plotly.js 快速重繪。
+- **GPU 加速**：3D / WebGL 圖表透過 QtWebEngine 走硬體 GPU 渲染；GUI 提供硬體加速開關與「GPU 高密度 / 極限」散點檔位（約 30 萬～100 萬點）。
 - **資料匯出**：CSV 統計報告、區塊均值矩陣（CSV / NumPy `.npy`）、單圖互動 HTML。
 - **便利操作**：拖放載入影像、原圖縮圖預覽、內建測試漸層圖。
 
@@ -66,6 +67,13 @@ pyinstaller GrayscaleUniformity3DAnalyzer.spec --noconfirm
 
 ---
 
+## 🖥️ GPU 加速與大圖處理
+
+- **3D 散點圖 / 曲面圖** 使用 **WebGL**，QtWebEngine（Chromium）在硬體加速開啟時即以 GPU 渲染。
+- GUI 左側「**硬體 GPU 加速**」可切換硬體 / 軟體渲染（Chromium 啟動旗標，**變更後需重啟程式**才生效）。
+- 「**渲染品質**」提供 `GPU 高密度 (約 30 萬點)`、`GPU 極限 (約 100 萬點)` 檔位，交由高階顯卡處理更多點。
+- **關於「完全不降採樣」**：瓶頸並非 GPU 算力，而是資料需經 HTML/JSON 傳入瀏覽器 —— 數千萬點會產生逾 GB 的文字，瀏覽器無法解析。故超大影像仍採智慧降採樣；若需全解析度光柵化，未來可整合 datashader 或原生 OpenGL 檢視器。
+
 ## 📊 均勻度與分級定義
 
 | 指標 | 公式 |
@@ -96,6 +104,7 @@ grayscale_uniformity/         # 核心套件
 ├── grading.py                # UniformityGrader：偏離平均警戒線分級
 ├── charts.py                 # ChartBuilder：單一 Plotly 圖表
 ├── report.py                 # ReportBuilder：卡片式多圖表 HTML 報表
+├── config.py                 # 使用者偏好 (QSettings) 與 GPU 旗標
 └── ui/
     ├── main_window.py        # 主視窗
     ├── worker.py             # 背景分析執行緒

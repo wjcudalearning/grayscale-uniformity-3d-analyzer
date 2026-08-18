@@ -61,7 +61,14 @@
   `charts` (ChartBuilder)、`report` (ReportBuilder)、`ui/{main_window,worker,widgets}`
 - [x] 各模組保留模組層便利函式維持向後相容；單元測試擴充至 7 項並全數通過
 
-## 8. 後續可再優化 (Nice-to-have)
+## 8. GPU 加速與超大圖修正
+- [x] **HTML 報表超大/狹長影像修正**：直方圖改伺服器端 `np.histogram` 分箱 (避免數千萬原始值塞進 HTML 造成第 3 張圖後無法顯示)；熱力圖/分區圖鎖定 1:1 長寬比 (避免變形)；徑向計算改用降採樣資料
+- [x] **GPU 硬體加速開關** (`config.py`)：QtWebEngine Chromium 旗標，GUI 可切換 (重啟生效)，預設開啟並忽略 GPU 封鎖清單
+- [x] **散點 GPU 高密度/極限檔位** (約 30 萬 / 100 萬點)，交由高階顯卡渲染
+- [ ] 全解析度渲染路徑：datashader 光柵化 或 原生 OpenGL (pyqtgraph/VisPy) — 待評估
+- [ ] README 加入實機截圖 (需使用者提供，無頭環境無法產生中文截圖)
+
+## 9. 後續可再優化 (Nice-to-have)
 - [ ] 錯誤處理：損毀影像檔的復原提示 (拖放副檔名已提示)
 - [ ] 主圖表區與縮圖使用相同 colormap 一致化預覽
 - [ ] 大圖載入亦移至背景執行緒（目前 `ImageLoader.load` 在主執行緒）

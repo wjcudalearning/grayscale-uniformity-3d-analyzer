@@ -20,7 +20,7 @@ from .grading import (
 from .charts import ChartBuilder, create_plotly_html, auto_value_range, downsample_for_view
 from .report import ReportBuilder, create_report_html
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 __all__ = [
     "ImageLoader", "load_grayscale_image",
