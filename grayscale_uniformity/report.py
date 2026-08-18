@@ -53,6 +53,8 @@ class ReportBuilder:
                                       colorbar=dict(title="灰階值"),
                                       hovertemplate="X: %{x}<br>Y: %{y}<br>灰階值: %{z:.2f}<extra></extra>"))
         self._axes(fig_hm, "X (欄/寬度)", "Y (列/高度)", y_reversed=True)
+        # 鎖定 1:1 長寬比，避免狹長影像被拉伸變形 (letterbox 置中)
+        fig_hm.update_yaxes(scaleanchor="x", scaleratio=1, constrain="domain")
         div_hm = self._fig_div(fig_hm, 420)
 
         # 2. 均勻度分區圖 (偏差 zone map)
@@ -68,11 +70,15 @@ class ReportBuilder:
                                         colorbar=dict(title="偏差 %", tickvals=[0] + thr),
                                         hovertemplate="X: %{x}<br>Y: %{y}<br>偏差: %{z:.2f}%<extra></extra>"))
         self._axes(fig_zone, "X (欄/寬度)", "Y (列/高度)", y_reversed=True)
+        fig_zone.update_yaxes(scaleanchor="x", scaleratio=1, constrain="domain")
         div_zone = self._fig_div(fig_zone, 420)
 
-        # 3. 直方圖 + 警戒線
-        fig_hist = go.Figure(go.Histogram(x=bm.flatten(), nbinsx=72, marker=dict(color="#93c5fd"),
-                                          hovertemplate="灰階值: %{x}<br>數量: %{y}<extra></extra>"))
+        # 3. 直方圖 + 警戒線 (伺服器端分箱，避免超大影像把數千萬原始值塞進 HTML)
+        counts, edges = np.histogram(bm, bins=72, range=(vmin, vmax))
+        centers = (edges[:-1] + edges[1:]) / 2.0
+        fig_hist = go.Figure(go.Bar(x=centers, y=counts, width=(edges[1] - edges[0]),
+                                    marker=dict(color="#93c5fd"),
+                                    hovertemplate="灰階值: %{x:.1f}<br>數量: %{y}<extra></extra>"))
         fig_hist.add_vline(x=mean_val, line=dict(color="#111827", width=2),
                            annotation_text="平均", annotation_position="top")
         for t, c in zip(thr, ZONE_COLORS):
@@ -99,15 +105,17 @@ class ReportBuilder:
         fig_prof.update_layout(legend=dict(orientation="h", y=1.12, x=0))
         div_prof = self._fig_div(fig_prof, 380)
 
-        # 5. 徑向亮度衰減
-        yy, xx = np.mgrid[0:h, 0:w]
-        cy, cx = (h - 1) / 2.0, (w - 1) / 2.0
+        # 5. 徑向亮度衰減 (以降採樣資料計算，避免超大影像配置數千萬元素的座標網格)
+        rad_src, _ = downsample_for_view(bm, 250000)
+        rh, rw = rad_src.shape
+        yy, xx = np.mgrid[0:rh, 0:rw]
+        cy, cx = (rh - 1) / 2.0, (rw - 1) / 2.0
         r = np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2)
         rmax = float(r.max()) if r.size else 1.0
         rn = (r / rmax if rmax > 0 else r).ravel()
         nb = 48
         idx = np.clip((rn * nb).astype(int), 0, nb - 1)
-        radial_mean = np.bincount(idx, weights=bm.ravel(), minlength=nb) / \
+        radial_mean = np.bincount(idx, weights=rad_src.ravel(), minlength=nb) / \
             np.maximum(np.bincount(idx, minlength=nb), 1)
         radial_x = (np.arange(nb) + 0.5) / nb * 100.0
         fig_rad = go.Figure()

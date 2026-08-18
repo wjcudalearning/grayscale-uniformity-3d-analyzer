@@ -81,10 +81,13 @@ class ChartBuilder:
                 hovertemplate="X (寬): %{x}<br>Y (高): %{y}<br>灰階值: %{z:.2f}<extra></extra>"))
 
         elif chart_type == "histogram":
-            fig.add_trace(go.Histogram(
-                x=block_means.flatten(), nbinsx=64,
+            # 伺服器端分箱：避免超大影像把數千萬原始值塞進 HTML 導致瀏覽器卡死
+            counts, edges = np.histogram(block_means, bins=64, range=(vmin, vmax))
+            centers = (edges[:-1] + edges[1:]) / 2.0
+            fig.add_trace(go.Bar(
+                x=centers, y=counts, width=(edges[1] - edges[0]),
                 marker=dict(color="#3b82f6", line=dict(color=paper, width=0.5)),
-                hovertemplate="灰階值區間: %{x}<br>數量: %{y}<extra></extra>"))
+                hovertemplate="灰階值: %{x:.1f}<br>數量: %{y}<extra></extra>"))
 
         elif chart_type == "profile":
             mid_row = block_means[h // 2, :]
