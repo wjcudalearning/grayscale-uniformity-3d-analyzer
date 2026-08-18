@@ -7,7 +7,7 @@ from PySide6.QtCore import Qt, Slot, QUrl, QTimer
 from PySide6.QtGui import QPixmap, QImage
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QFileDialog, QComboBox, QGroupBox, QFrame,
+    QLabel, QLineEdit, QFileDialog, QComboBox, QGroupBox, QFrame,
     QProgressBar, QMessageBox, QSplitter, QScrollArea
 )
 from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -16,6 +16,7 @@ from ..image_io import ImageLoader
 from ..analysis import UniformityResult
 from ..charts import create_plotly_html
 from ..report import create_report_html
+from ..grading import parse_thresholds, DEFAULT_THRESHOLDS
 from .worker import AnalysisWorker
 from .widgets import MetricCard, field_label_qss, APP_QSS
 
@@ -179,6 +180,15 @@ class MainWindow(QMainWindow):
         self.combo_theme.addItem("深色 (Dark)", "dark")
         self.combo_theme.currentIndexChanged.connect(self._schedule_analysis)
         param_layout.addWidget(self.combo_theme)
+
+        # 報表警戒線門檻 (%)，逗號分隔；供完整 HTML 報表分級使用
+        lbl_thr = QLabel("報表警戒線門檻 (%，逗號分隔):")
+        lbl_thr.setStyleSheet(field_label_qss())
+        param_layout.addWidget(lbl_thr)
+        self.edit_thresholds = QLineEdit(", ".join(f"{t:g}" for t in DEFAULT_THRESHOLDS))
+        self.edit_thresholds.setPlaceholderText("例如 3, 5, 10, 20")
+        self.edit_thresholds.setToolTip("僅影響「完整分析報表」的警戒線與分級；以「偏離平均 ±X%」定義")
+        param_layout.addWidget(self.edit_thresholds)
 
         scroll_layout.addWidget(param_group)
 
@@ -419,9 +429,13 @@ class MainWindow(QMainWindow):
             return
         if not file_path.lower().endswith(".html"):
             file_path += ".html"
+        # 解析使用者自訂警戒線門檻 (無效則回退預設)，並回填正規化後的值
+        thresholds = parse_thresholds(self.edit_thresholds.text(), DEFAULT_THRESHOLDS)
+        self.edit_thresholds.setText(", ".join(f"{t:g}" for t in thresholds))
         try:
             html = create_report_html(
                 self.current_result, colorscale=self.combo_color.currentData(),
+                thresholds=thresholds,
                 image_name=str(self.current_image_path or ""),
                 timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
             with open(file_path, "w", encoding="utf-8") as f:

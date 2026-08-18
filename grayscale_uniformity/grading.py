@@ -1,4 +1,5 @@
 """均勻度分級：以「偏離平均 ±X%」為不均勻度定義，對照警戒線 (3/5/10/20%) 評級。"""
+import re
 import numpy as np
 from dataclasses import dataclass
 from typing import Optional, Dict, List
@@ -64,3 +65,23 @@ class UniformityGrader:
 
 def grade_uniformity(block_means, mean_val, thresholds=None) -> UniformityGrade:
     return UniformityGrader(thresholds).grade(block_means, mean_val)
+
+
+def parse_thresholds(text: str, fallback: Optional[List[float]] = None) -> List[float]:
+    """將使用者輸入 (逗號 / 空白 / 頓號分隔) 解析為排序、去重、正值的門檻清單。
+    無有效值時回傳 fallback (預設 DEFAULT_THRESHOLDS)。"""
+    fallback = list(fallback if fallback is not None else DEFAULT_THRESHOLDS)
+    if not text:
+        return fallback
+    values = []
+    for tok in re.split(r"[,\s、;]+", str(text).strip()):
+        if not tok:
+            continue
+        try:
+            v = float(tok)
+        except ValueError:
+            continue
+        if v > 0:
+            values.append(round(v, 4))
+    values = sorted(set(values))
+    return values if values else fallback

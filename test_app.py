@@ -13,6 +13,8 @@ from grayscale_uniformity import (
     create_plotly_html,
     create_report_html,
     grade_uniformity,
+    parse_thresholds,
+    DEFAULT_THRESHOLDS,
 )
 
 
@@ -91,6 +93,22 @@ class TestUniformityAnalyzer(unittest.TestCase):
         self.assertAlmostEqual(g2.max_dev_pct, 10.0, places=4)
         self.assertAlmostEqual(g2.pass_rates[3.0], 0.0)
         self.assertAlmostEqual(g2.pass_rates[10.0], 100.0)
+
+    def test_parse_thresholds(self):
+        """測試警戒線門檻字串解析：排序去重、過濾非法值、回退預設"""
+        self.assertEqual(parse_thresholds("3, 5, 10, 20"), [3.0, 5.0, 10.0, 20.0])
+        self.assertEqual(parse_thresholds("20 5、5  3"), [3.0, 5.0, 20.0])  # 空白/頓號分隔+去重
+        self.assertEqual(parse_thresholds("2,4,8"), [2.0, 4.0, 8.0])        # 自訂值
+        self.assertEqual(parse_thresholds(""), DEFAULT_THRESHOLDS)          # 空 -> 預設
+        self.assertEqual(parse_thresholds("abc, -1, 0"), DEFAULT_THRESHOLDS)  # 全非法 -> 預設
+
+    def test_report_with_custom_thresholds(self):
+        """測試自訂門檻可反映於報表分級"""
+        grid = np.random.uniform(90, 110, size=(40, 40)).astype(np.float32)
+        result = analyze_uniformity(grid, block_size=1)
+        html = create_report_html(result, thresholds=[2, 8], image_name="c.png", timestamp="t")
+        self.assertIn("±2%", html)
+        self.assertIn("±8%", html)
 
     def test_report_html_generation(self):
         """測試完整 HTML 報表生成含所有區段"""

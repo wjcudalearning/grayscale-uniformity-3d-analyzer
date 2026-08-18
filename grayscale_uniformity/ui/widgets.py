@@ -68,6 +68,12 @@ APP_QSS = """
     }
     QComboBox:hover { border-color: #9ca3af; }
     QComboBox:focus { border-color: #2563eb; }
+    QLineEdit {
+        background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 8px;
+        padding: 7px 10px; color: #1f2430; font-size: 13px;
+    }
+    QLineEdit:hover { border-color: #9ca3af; }
+    QLineEdit:focus { border-color: #2563eb; }
     QComboBox::drop-down { border: none; width: 22px; }
     QComboBox QAbstractItemView {
         background-color: #ffffff; color: #1f2430; selection-background-color: #2563eb;

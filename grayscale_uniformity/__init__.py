@@ -14,19 +14,19 @@ from .analysis import (
     compute_block_means, analyze_uniformity,
 )
 from .grading import (
-    UniformityGrade, UniformityGrader, grade_uniformity,
+    UniformityGrade, UniformityGrader, grade_uniformity, parse_thresholds,
     DEFAULT_THRESHOLDS, GRADE_STYLE, ZONE_COLORS,
 )
 from .charts import ChartBuilder, create_plotly_html, auto_value_range, downsample_for_view
 from .report import ReportBuilder, create_report_html
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 __all__ = [
     "ImageLoader", "load_grayscale_image",
     "UniformityResult", "UniformityAnalyzer", "Pooler",
     "compute_block_means", "analyze_uniformity",
-    "UniformityGrade", "UniformityGrader", "grade_uniformity",
+    "UniformityGrade", "UniformityGrader", "grade_uniformity", "parse_thresholds",
     "DEFAULT_THRESHOLDS", "GRADE_STYLE", "ZONE_COLORS",
     "ChartBuilder", "create_plotly_html", "auto_value_range", "downsample_for_view",
     "ReportBuilder", "create_report_html",

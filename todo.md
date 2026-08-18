@@ -66,4 +66,4 @@
 - [ ] 主圖表區與縮圖使用相同 colormap 一致化預覽
 - [ ] 大圖載入亦移至背景執行緒（目前 `ImageLoader.load` 在主執行緒）
 - [ ] 記憶使用者上次選用的參數（QSettings）
-- [ ] 報表警戒線門檻可由 GUI 自訂
+- [x] 報表警戒線門檻可由 GUI 自訂（`edit_thresholds` 欄位 + `parse_thresholds`，預設 3/5/10/20）
