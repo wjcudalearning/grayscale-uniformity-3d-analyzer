@@ -45,14 +45,14 @@ python -m unittest test_app -v
 
 ### 免安裝執行檔 (Windows)
 
-不想安裝 Python 的使用者，可至 [Releases](https://github.com/wjcudalearning/grayscale-uniformity-3d-analyzer/releases) 下載打包好的單一 `.exe` 直接執行。
+不想安裝 Python 的使用者，可至 [Releases](https://github.com/wjcudalearning/grayscale-uniformity-3d-analyzer/releases) 下載打包好的 zip，解壓後執行資料夾內的 `GrayscaleUniformity3DAnalyzer.exe`（請保留整個資料夾一起）。
 
-自行打包：
+自行打包（onedir 資料夾版，QtWebEngine 較穩定）：
 
 ```bash
 pip install pyinstaller
 pyinstaller GrayscaleUniformity3DAnalyzer.spec --noconfirm
-# 產出 dist/GrayscaleUniformity3DAnalyzer.exe
+# 產出 dist/GrayscaleUniformity3DAnalyzer/ (整個資料夾為執行所需)
 ```
 
 ---
